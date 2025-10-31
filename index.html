@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Quarter Counter (QTA) – Prototype v5</title>
+<style>
+  /* THEME VARS */
+  :root{
+    --bg:#0b0c0f; --card:#121419; --muted:#2a2f3a; --text:#e9eef7; --sub:#9ba7bd; --ok:#5dd39e;
+    --metaSize:34px;         /* ~5% smaller than previous 36px/39px */
+    --titleSize:32px;        /* +15% from 28px */
+    --taglineSize:15px;      /* ~12% larger than 13px */
+  }
+  body.light{
+    --bg:#fafbfd; --card:#ffffff; --muted:#e7ecf5; --text:#0b0c0f; --sub:#536079; --ok:#1f8f55;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.45 Inter,system-ui,Segoe UI,Arial;background:var(--bg);color:var(--text)}
+  .wrap{max-width:1100px;margin:40px auto;padding:0 20px}
+  .topbar{display:flex;justify-content:flex-end}
+  .themeBtn{border:1px solid #1a1f2b;background:transparent;color:var(--text);padding:6px 10px;border-radius:10px;cursor:pointer}
+  body.light .themeBtn{border-color:#cfd6e6}
+
+  /* Header */
+  .center{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:22px;text-align:center}
+  .brandRow{display:flex;align-items:center;gap:8px} /* logo closer to text */
+  .logo{width:42px;height:42px}
+  .title{font-weight:900;letter-spacing:.2px;font-size:var(--titleSize)}
+  .subtitle{color:var(--sub);font-size:var(--taglineSize);font-style:italic} /* italic + larger */
+
+  .card{background:linear-gradient(180deg,var(--card),rgba(0,0,0,0.02));border:1px solid #1a1f2b;border-radius:14px;padding:22px}
+  body.light .card{border-color:#d7deee}
+
+  .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;background:rgba(12,17,24,.6);border:1px solid #1b2130;color:#b8c3d8;font-size:12px}
+  body.light .pill{background:#f2f6ff;color:#4e5a74;border-color:#cfd6e6}
+
+  /* Quarter area */
+  .qHeader{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px}
+  .qMain{display:flex;flex-direction:column;align-items:center;gap:14px;margin:8px 0 6px}
+  .qLabel{font-size:42px;font-weight:900;line-height:1;margin-bottom:14px;} /* extra space under Q4 2025 */
+  .qDaysLeft{font-size:62px;font-weight:900;letter-spacing:.5px;line-height:1}
+  .qCaption{font-size:var(--metaSize);color:#cbd6ec;opacity:.95;line-height:1.15;margin-top:2px}
+  body.light .qCaption{color:#4b5568;opacity:1}
+
+  /* Progress bar (taller) */
+  .qbarWrap{width:100%;margin-top:18px}
+  .qbar{position:relative;width:100%;height:58px;padding:6px;border-radius:14px;background:#0c0f15;border:1px solid #1b2130;overflow:hidden}
+  body.light .qbar{background:#eef2fb;border-color:#d4dbed}
+  .bar{display:flex;gap:4px;height:100%}
+  .seg{height:100%;flex:1;border-radius:8px;opacity:.28;transition:opacity .35s ease, transform .4s ease;transform-origin:left}
+  .seg.on{opacity:1}
+  @keyframes fill { from { transform:scaleX(0) } to { transform:scaleX(1) } }
+  .seg.play{ animation: fill .5s forwards }
+
+  /* Toggle switch (large, clean, centered text) */
+  .toggleWrap{display:flex;justify-content:center;margin-top:16px}
+  .toggle{position:relative;display:flex;align-items:center;justify-content:space-between;background:#0c1118;border:1px solid #1b2130;border-radius:999px;padding:6px;width:520px;max-width:100%}
+  body.light .toggle{background:#eaf0fb;border-color:#cfd6e6}
+  .toggle .knob{position:absolute;z-index:1;top:4px;bottom:4px;width:50%;border-radius:999px;background:#1a2434;transition:transform .25s ease}
+  body.light .toggle .knob{background:#d7def1}
+  .toggle.remain .knob{transform:translateX(0)}
+  .toggle.spent .knob{transform:translateX(100%)}
+  .toggle button{position:relative;z-index:2;border:none;background:transparent;color:#c6d2ea;font-weight:800;font-size:var(--metaSize);padding:6px 18px;border-radius:999px;cursor:pointer;flex:1;text-align:center}
+  body.light .toggle button{color:#33415f}
+
+  /* Below-bar meta line */
+  .metaLarge{font-size:var(--metaSize);font-weight:800;color:#cbd6ec;opacity:.95;letter-spacing:.2px}
+  body.light .metaLarge{color:#3e4a61;opacity:1}
+
+  /* Secondary layout */
+  .grid{display:grid;gap:16px}
+  .grid-2{grid-template-columns:1.3fr .7fr}
+  .grid-3{grid-template-columns:repeat(3,1fr)}
+  .row{display:flex;justify-content:space-between;align-items:end;gap:12px}
+  .timer{font-weight:800;font-size:48px;letter-spacing:.5px}
+  .ta{width:100%;height:120px;background:#0c0f15;border:1px solid #1b2130;border-radius:10px;color:var(--text);padding:10px;resize:vertical}
+  body.light .ta{background:#f6f8fe;border-color:#d4dbed;color:#0b0c0f}
+  .qbar .hint{position:absolute;inset:auto 10px 8px auto;font-size:12px;color:#9fb0ce;opacity:.8}
+  body.light .qbar .hint{color:#5a6a87}
+
+  /* Simple header buttons */
+  .actions{display:flex;gap:10px; align-items:center}
+  .btn{border:1px solid #1a1f2b; background:transparent; color:var(--text); padding:6px 12px; border-radius:10px; cursor:pointer; text-decoration:none}
+  body.light .btn{border-color:#cfd6e6; color:#0b0c0f}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="actions">
+        <a class="btn" id="updatesBtn" href="#" target="_blank" rel="noopener">Get Updates</a>
+        <a class="btn" id="preorderBtn" href="#" target="_blank" rel="noopener">Pre‑order Pro</a>
+        <button id="themeBtn" class="themeBtn" aria-pressed="false">☀️ Light</button>
+      </div>
+    </div>
+
+    <!-- centered header with logo + title -->
+    <div class="center">
+      <div class="brandRow">
+        <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+          <defs>
+            <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="0.6" flood-opacity="0.25"/>
+            </filter>
+          </defs>
+          <circle cx="32" cy="32" r="30" fill="transparent" stroke="currentColor" stroke-width="2" opacity=".25"/>
+          <g transform="skewX(-12)" filter="url(#soft)">
+            <rect x="16" y="34" width="8" height="14" rx="2" fill="#6aa8ff"/>
+            <rect x="27" y="27" width="8" height="21" rx="2" fill="#8a7dff"/>
+            <rect x="38" y="18" width="8" height="30" rx="2" fill="#ff5a6e"/>
+          </g>
+        </svg>
+        <div class="title">Quarter Counter</div>
+      </div>
+      <div class="subtitle"><em>“Where am I in the quarter?” — at a glance.</em></div>
+    </div>
+
+    <!-- Quarter block -->
+    <div class="card">
+      <div class="qHeader">
+        <div class="pill"><span style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></span> Discipline mode</div>
+        <div class="subtitle" id="marketLabel">—</div>
+      </div>
+
+      <div class="qMain">
+        <div id="qLabel" class="qLabel">Q4 2025</div>
+
+        <!-- BIG number + caption -->
+        <div id="qDaysLeft" class="qDaysLeft">—</div>
+        <div id="qCaption" class="qCaption">Days Remaining</div>
+
+        <!-- Progress bar -->
+        <div class="qbarWrap">
+          <div class="qbar" title="Quarter progress (trading days)">
+            <div id="qbarBase" class="bar"></div>
+            <div id="qbarFillMask" style="position:absolute;left:6px;top:6px;bottom:6px;width:0;overflow:hidden;border-radius:10px;">
+              <div id="qbarFill" class="bar"></div>
+            </div>
+            <div class="hint">Blue → Deep red as quarter advances</div>
+          </div>
+        </div>
+
+        <!-- Toggle -->
+        <div class="toggleWrap">
+          <div id="pctToggle" class="toggle remain" role="tablist" aria-label="Remaining vs Spent">
+            <div class="knob" aria-hidden="true"></div>
+            <button id="btnRemain" role="tab" aria-selected="true">Remaining</button>
+            <button id="btnSpent" role="tab" aria-selected="false">Spent</button>
+          </div>
+        </div>
+
+        <div class="metaLarge" style="margin-top:12px">
+          <span id="qSub">Day — of —</span> • <span id="pctText">—%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:18px">
+      <!-- Year tracker -->
+      <div class="card">
+        <div class="row"><strong>Year 2025</strong><div class="subtitle" id="yearLeft">— trading days left</div></div>
+        <div class="qbar" style="height:16px">
+          <div id="yearFill" class="seg on" style="flex:0;background:#5b6b88;opacity:1;border-radius:8px"></div>
+          <div style="flex:1"></div>
+        </div>
+      </div>
+
+      <!-- Countdown -->
+      <div class="card" style="text-align:center">
+        <div class="subtitle">Next market open</div>
+        <div id="timer" class="timer">--:--:--</div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="grid grid-3" style="margin-top:18px">
+      <div class="card">
+        <strong>Hard Targets</strong>
+        <textarea id="hard" class="ta" placeholder="e.g. Achieve 4 A+ setups this quarter"></textarea>
+      </div>
+      <div class="card">
+        <strong>Soft Targets</strong>
+        <textarea id="soft" class="ta" placeholder="e.g. Journal every Friday; follow entry checklist"></textarea>
+      </div>
+      <div class="card">
+        <strong>Set-ups & Timing Notes</strong>
+        <textarea id="setups" class="ta" placeholder="e.g. When TSLA tests VWAP on rising volume → wait 15m retest"></textarea>
+      </div>
+    </div>
+
+    <!-- Simple FAQ for SEO (you can edit) -->
+    <div class="card" style="margin-top:18px">
+      <h2 style="margin:0 0 8px 0">FAQ</h2>
+      <details><summary>How many trading days are left this quarter?</summary>
+        <p>The big number above shows the count for your selected market, excluding weekends and exchange holidays.</p>
+      </details>
+      <details><summary>What time does the LSE/NYSE open?</summary>
+        <p>LSE opens at 08:00 London; NYSE at 09:30 New York (DST-aware). We'll add more markets soon.</p>
+      </details>
+      <details><summary>Can I get a daily snapshot before the open?</summary>
+        <p>In the Pro version you'll be able to receive a pre-open snapshot via desktop notifications and email.</p>
+      </details>
+    </div>
+  </div>
+
+<script>
+/* ===== Market config ===== */
+const MARKET = {
+  code:'LSE',
+  tz:'Europe/London',
+  open:'08:00',
+  close:'16:30',
+  holidays:[
+    '2025-12-25','2025-12-26','2025-01-01',
+    '2025-04-18','2025-04-21','2025-05-05','2025-05-26','2025-08-25'
+  ]
+};
+
+/* ===== Helpers ===== */
+const pad=n=>String(n).padStart(2,'0');
+const toLocal=(d,tz)=> new Date(d.toLocaleString('en-GB',{timeZone:tz}));
+function isHoliday(d){ const y=d.getFullYear(), m=pad(d.getMonth()+1), day=pad(d.getDate()); return MARKET.holidays.includes(`${y}-${m}-${day}`); }
+function isTradingDay(d){
+  const loc=toLocal(d, MARKET.tz);
+  const w=loc.getDay();
+  return !(w===0 || w===6 || isHoliday(loc));
+}
+function quarterBounds(d){
+  const y=d.getFullYear(), m=d.getMonth();
+  const q = Math.floor(m/3)+1;
+  const startMonth = (q-1)*3;
+  const start = new Date(Date.UTC(y,startMonth,1));
+  const endMonth = startMonth+3;
+  const end = new Date(Date.UTC(y,endMonth,0));
+  return {q, start, end};
+}
+function countTradingDaysInclusive(start, end){
+  let n=0, d=new Date(start);
+  while(d<=end){ if(isTradingDay(d)) n++; d.setUTCDate(d.getUTCDate()+1); }
+  return n;
+}
+function tradingDaysGoneInQuarter(today, start){
+  let n=0, d=new Date(start);
+  while(d<=today){ if(isTradingDay(d)) n++; d.setUTCDate(d.getUTCDate()+1); }
+  return Math.max(0, n-0);
+}
+function yearTradingTotals(today){
+  const y=today.getFullYear();
+  const start=new Date(Date.UTC(y,0,1));
+  const end=new Date(Date.UTC(y,11,31));
+  const total=countTradingDaysInclusive(start,end);
+  let gone=0, d=new Date(start);
+  while(d<=today){ if(isTradingDay(d)) gone++; d.setUTCDate(d.getUTCDate()+1); }
+  return {total,gone,left:Math.max(0,total-gone)};
+}
+function nextOpenUTC(now=new Date()){
+  let d=new Date(now);
+  for(let i=0;i<14;i++){
+    const loc=toLocal(d, MARKET.tz);
+    const [hh,mm]=MARKET.open.split(':').map(Number);
+    const openLoc=new Date(loc.getFullYear(),loc.getMonth(),loc.getDate(),hh,mm,0,0);
+    const openUTC=new Date(openLoc.toLocaleString('en-GB',{timeZone:'UTC'}));
+    if(isTradingDay(openUTC) && openUTC>now) return openUTC;
+    d.setUTCDate(d.getUTCDate()+1);
+  }
+  return new Date(now.getTime()+86400000);
+}
+function hueAt(t){ const h=220 + (10-220)*t, s=90 + (85-90)*t, l=55 + (45-55)*t; return `hsl(${h}deg ${s}% ${l}%)`; }
+
+/* ===== Rendering ===== */
+let showRemaining = true;
+
+function render(){
+  const now=new Date();
+  const {q,start,end}=quarterBounds(now);
+  const total=countTradingDaysInclusive(start,end);
+  const gone=tradingDaysGoneInQuarter(now,start);
+  const remaining=Math.max(0,total-gone);
+  const pctRem = Math.round(100*remaining/total);
+  const pctSpent = 100-pctRem;
+
+  document.getElementById('qLabel').textContent = `Q${q} ${now.getFullYear()}`;
+
+  // Big number + caption
+  document.getElementById('qDaysLeft').textContent = `${remaining}`;
+  document.getElementById('qCaption').textContent = 'Days Remaining';
+
+  // Build base layer (all segments faint)
+  const base=document.getElementById('qbarBase'); base.innerHTML='';
+  for(let i=0;i<total;i++){
+    const seg=document.createElement('div');
+    seg.className='seg';
+    seg.style.background=hueAt((i+1)/total);
+    base.appendChild(seg);
+  }
+  // Build fill layer (segments up to "gone")
+  const fill=document.getElementById('qbarFill'); fill.innerHTML='';
+  for(let i=0;i<gone;i++){
+    const seg=document.createElement('div');
+    seg.className='seg on play';
+    seg.style.background=hueAt((i+1)/total);
+    seg.style.animationDelay = (i*0.008)+'s';
+    fill.appendChild(seg);
+  }
+
+  // Animate mask width from 0 -> percent filled
+  const mask = document.getElementById('qbarFillMask');
+  mask.style.width = '0';
+  requestAnimationFrame(()=>{
+    const pct = (gone/total)*100;
+    mask.style.transition = 'width 800ms ease';
+    mask.style.width = pct + '%';
+  });
+
+  // Toggle text
+  const pctEl = document.getElementById('pctText');
+  pctEl.textContent = showRemaining ? `${pctRem}%` : `${pctSpent}%`;
+
+  // Market + meta
+  document.getElementById('marketLabel').textContent = `${MARKET.code} • ${MARKET.tz}`;
+  document.getElementById('qSub').textContent = `Day ${Math.min(gone+1,total)} of ${total}`;
+
+  // Year bar
+  const y=yearTradingTotals(now);
+  document.getElementById('yearLeft').textContent = `${y.left} trading days left`;
+  const yearFill=document.getElementById('yearFill');
+  yearFill.style.flex = (y.gone/y.total)*100 + '%';
+}
+
+function tick(){
+  const t=nextOpenUTC();
+  const now=new Date();
+  let ms=Math.max(0, t-now);
+  const h=Math.floor(ms/36e5); ms%=36e5;
+  const m=Math.floor(ms/6e4);  ms%=6e4;
+  const s=Math.floor(ms/1000);
+  document.getElementById('timer').textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+/* Toggle behavior */
+const toggle = document.getElementById('pctToggle');
+const btnRemain = document.getElementById('btnRemain');
+const btnSpent = document.getElementById('btnSpent');
+
+btnRemain.addEventListener('click', () => {
+  showRemaining = true;
+  toggle.classList.remove('spent'); toggle.classList.add('remain');
+  btnRemain.setAttribute('aria-selected','true'); btnSpent.setAttribute('aria-selected','false');
+  render();
+});
+btnSpent.addEventListener('click', () => {
+  showRemaining = false;
+  toggle.classList.remove('remain'); toggle.classList.add('spent');
+  btnSpent.setAttribute('aria-selected','true'); btnRemain.setAttribute('aria-selected','false');
+  render();
+});
+
+/* notes persistence */
+['hard','soft','setups'].forEach(id=>{
+  const el=document.getElementById(id);
+  el.value = localStorage.getItem('qta_'+id) || '';
+  el.addEventListener('input', ()=>{
+    clearTimeout(el._t);
+    el._t=setTimeout(()=>localStorage.setItem('qta_'+id, el.value), 250);
+  });
+});
+
+/* theme toggle */
+const themeBtn = document.getElementById('themeBtn');
+const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+if(prefersLight){ document.body.classList.add('light'); themeBtn.textContent='🌙 Dark'; themeBtn.setAttribute('aria-pressed','true'); }
+themeBtn.addEventListener('click', ()=>{
+  document.body.classList.toggle('light');
+  const light = document.body.classList.contains('light');
+  themeBtn.textContent = light ? '🌙 Dark' : '☀️ Light';
+  themeBtn.setAttribute('aria-pressed', light ? 'true' : 'false');
+});
+
+/* init */
+render(); tick(); setInterval(tick,1000);
+
+/* ----- Replace these with your real links later ----- */
+document.getElementById('updatesBtn').href = "#"; // e.g. Mailchimp/ConvertKit form
+document.getElementById('preorderBtn').href = "#"; // e.g. Stripe Payment Link
+</script>
+</body>
+</html>
