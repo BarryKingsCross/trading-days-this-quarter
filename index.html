@@ -21,7 +21,7 @@
 
   *{box-sizing:border-box}
   body{margin:0;font:16px/1.45 Inter,system-ui,Segoe UI,Arial;background:var(--bg);color:var(--text)}
-  .wrap{max-width:1120px;margin:40px auto;padding:0 20px}
+  .wrap{max-width:1140px;margin:40px auto;padding:0 20px}
   .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
   .themeBtn,.btn{border:1px solid #1a1f2b;background:transparent;color:var(--text);padding:6px 12px;border-radius:10px;cursor:pointer;text-decoration:none}
   body.light .themeBtn, body.light .btn{border-color:#cfd6e6;color:#0b0c0f}
@@ -55,13 +55,14 @@
   .smallRow{display:flex;gap:14px;align-items:center;justify-content:center;margin-top:4px;color:#9fb0ce}
   .chk{display:flex;align-items:center;gap:8px;font-weight:700}
 
-  /* Progress bar */
+  /* Progress bar (no overlay mask, crisp segments) */
   .qbarWrap{width:100%;margin-top:12px}
   .qbar{position:relative;width:100%;height:62px;padding:6px;border-radius:14px;background:#0c0f15;border:1px solid #1b2130;overflow:hidden}
   body.light .qbar{background:#eaf0fb;border-color:#d4dbed}
   .bar{display:flex;gap:4px;height:100%}
-  .seg{height:100%;flex:1;border-radius:8px;opacity:.96;transition:transform .35s ease;transform-origin:left}
+  .seg{height:100%;flex:1;border-radius:8px;background:#1a2130;opacity:.22}
   .seg.on{opacity:1}
+  .seg.fill{transition:transform .35s ease;transform-origin:left}
 
   /* Toggle */
   .toggleWrap{display:flex;justify-content:center;margin-top:12px}
@@ -81,17 +82,18 @@
   .grid{display:grid;gap:16px}
   .grid-2{grid-template-columns:1fr}
   .grid-3{grid-template-columns:repeat(3,1fr)}
-  @media(min-width:920px){ .grid-2{grid-template-columns:1.15fr .85fr} }
+  @media(min-width:980px){ .grid-2{grid-template-columns:1.2fr .8fr} }
 
-  /* Year list */
+  /* Year row (single horizontal line of five) */
   .yearList{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:10px}
+  @media(max-width:860px){ .yearList{grid-template-columns:repeat(2,1fr)} }
   .yearCard{padding:14px;border:1px solid #1b2130;border-radius:12px;background:#0c0f15}
   body.light .yearCard{background:#f6f8fe;border-color:#d4dbed}
   .yearHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
   .yTitle{font-weight:800}
   .yNum{font-weight:900;font-size:22px}
 
-  /* World clocks */
+  /* World clocks (move below years) */
   .clocks{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
   .clock{padding:14px;border:1px solid #1b2130;border-radius:12px;background:#0c0f15;text-align:center}
   body.light .clock{background:#f6f8fe;border-color:#d4dbed}
@@ -168,9 +170,7 @@
     <div class="card">
       <div class="qHeader">
         <div id="marketLabel" class="subtitle">NYSE • America/New_York</div>
-        <div class="tip"><span class="dot"></span>How we count
-          <div class="bubble">Mon–Fri only • Excludes exchange holidays • No half-days</div>
-        </div>
+        <div class="subtitle">Mon–Fri only • Excludes exchange holidays • No half-days</div>
       </div>
 
       <div class="qMain">
@@ -186,11 +186,8 @@
 
         <!-- Progress bar -->
         <div class="qbarWrap">
-          <div class="qbar" title="Quarter progress (trading days)">
-            <div id="qbarBase" class="bar"></div>
-            <div id="qbarFillMask" style="position:absolute;left:6px;top:6px;bottom:6px;width:0;overflow:hidden;border-radius:10px;">
-              <div id="qbarFill" class="bar"></div>
-            </div>
+          <div id="qbar" class="qbar">
+            <div id="qbarLine" class="bar"></div>
           </div>
         </div>
 
@@ -209,22 +206,21 @@
       </div>
     </div>
 
-    <!-- Year totals + World clocks -->
-    <div class="grid grid-2" style="margin-top:16px">
-      <div class="card">
-        <strong>Yearly Trading Days (est.)</strong>
-        <div class="yearList" id="yearList"></div>
-        <div class="subtitle" style="margin-top:6px">Current year uses selected market holidays; future years are Mon–Fri estimates.</div>
-      </div>
+    <!-- Year totals (single horizontal row) -->
+    <div class="card" style="margin-top:16px">
+      <strong>Yearly Trading Days (est.)</strong>
+      <div class="yearList" id="yearList"></div>
+      <div class="subtitle" style="margin-top:6px">Current year uses selected market holidays; future years are Mon–Fri estimates.</div>
+    </div>
 
-      <div class="card">
-        <strong>World Clocks</strong>
-        <div class="clocks">
-          <div class="clock"><div class="cCity">London</div><div class="cTime" id="tLDN">--:--</div></div>
-          <div class="clock"><div class="cCity">New York</div><div class="cTime" id="tNYC">--:--</div></div>
-          <div class="clock"><div class="cCity">Tokyo</div><div class="cTime" id="tTYO">--:--</div></div>
-          <div class="clock"><div class="cCity">Shanghai</div><div class="cTime" id="tSHA">--:--</div></div>
-        </div>
+    <!-- World clocks below years -->
+    <div class="card" style="margin-top:16px">
+      <strong>World Clocks</strong>
+      <div class="clocks">
+        <div class="clock"><div class="cCity">London</div><div class="cTime" id="tLDN">--:--</div></div>
+        <div class="clock"><div class="cCity">New York</div><div class="cTime" id="tNYC">--:--</div></div>
+        <div class="clock"><div class="cCity">Tokyo</div><div class="cTime" id="tTYO">--:--</div></div>
+        <div class="clock"><div class="cCity">Shanghai</div><div class="cTime" id="tSHA">--:--</div></div>
       </div>
     </div>
 
@@ -279,27 +275,10 @@
     <input id="licenseInput" type="text" placeholder="e.g. QTA-ALPHA-2025"
       style="width:100%; padding:10px; border-radius:8px; border:1px solid #1b2130; background:#0c0f15; color:var(--text); margin-bottom:12px;">
     <div style="display:flex; gap:8px; justify-content:flex-end;">
-      <button class="btn" onclick="closeUnlock()">Cancel</button>
-      <button class="btn" onclick="verifyLicense()">Unlock</button>
+      <button class="btn" onclick="(document.getElementById('unlockModal').style.display='none')">Cancel</button>
+      <button class="btn" onclick="(function(){localStorage.setItem('qta_pro_unlocked','1');document.getElementById('unlockModal').style.display='none';renderProState();render();})()">Unlock</button>
     </div>
     <div id="licenseMsg" class="subtitle" style="margin-top:8px;"></div>
-  </div>
-</div>
-
-<!-- Email capture modal -->
-<div id="emailModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:var(--card); border:1px solid #1a1f2b; border-radius:12px; padding:18px; width:90%; max-width:420px;">
-    <h3 style="margin:0 0 8px 0;">Get Updates</h3>
-    <p class="subtitle" style="margin:0 0 12px 0;">Leave your email and we’ll notify you when Pro launches.</p>
-    <form id="emailForm" onsubmit="submitEmail(event)">
-      <input id="emailInput" type="email" required placeholder="you@example.com"
-        style="width:100%; padding:10px; border-radius:8px; border:1px solid #1b2130; background:#0c0f15; color:var(--text); margin-bottom:12px;">
-      <div style="display:flex; gap:8px; justify-content:flex-end;">
-        <button class="btn" type="button" onclick="closeEmail()">Cancel</button>
-        <button class="btn" type="submit">Notify Me</button>
-      </div>
-    </form>
-    <div id="emailMsg" class="subtitle" style="margin-top:8px;"></div>
   </div>
 </div>
 
@@ -317,25 +296,8 @@ const MARKETS = {
 };
 let CURRENT = MARKETS.NYSE;
 
-/* ===== Pro gate ===== */
+/* ===== Pro gate visual only (soft) ===== */
 const PRO_FLAG = 'qta_pro_unlocked';
-function openUnlock(){ document.getElementById('unlockModal').style.display='flex'; }
-function closeUnlock(){ document.getElementById('unlockModal').style.display='none'; }
-async function sha256(text){ const enc=new TextEncoder().encode(text); const buf=await crypto.subtle.digest('SHA-256',enc); return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
-const VALID_SHA256 = []; // add hashes later
-async function verifyLicense(){
-  const input = document.getElementById('licenseInput').value.trim();
-  const msg = document.getElementById('licenseMsg');
-  if(!input){ msg.textContent='Please enter your code.'; return; }
-  const hash = await sha256(input);
-  if(VALID_SHA256.includes(hash)){
-    localStorage.setItem(PRO_FLAG,'1');
-    msg.textContent='✅ Pro unlocked on this device.';
-    setTimeout(()=>{ closeUnlock(); renderProState(); render(); }, 600);
-  } else {
-    msg.textContent='❌ That code was not recognized.';
-  }
-}
 function isPro(){ return localStorage.getItem(PRO_FLAG) === '1'; }
 function renderProState(){
   const unlock=document.getElementById('unlockBtn');
@@ -374,15 +336,12 @@ function countTradingDaysInclusive(start, end, m){
   while(d<=end){ if(isTradingDay(d,m)) n++; d.setUTCDate(d.getUTCDate()+1); }
   return n;
 }
-function tradingDaysGoneInQuarter(today, start, m, includeToday){
-  let n=0, d=new Date(start);
-  while(d<=today){ if(isTradingDay(d,m)) n++; d.setUTCDate(d.getUTCDate()+1); }
-  // if not including today and today was a trading day, subtract 1
-  if(!includeToday){
-    const wasTrading=isTradingDay(today,m);
-    if(wasTrading) n = Math.max(0, n-1);
-  }
-  return Math.max(0, n);
+function tradingDaysRemaining(today, end, m, includeToday){
+  let d=new Date(today);
+  if(!(includeToday && isTradingDay(d,m))){ d.setUTCDate(d.getUTCDate()+1); }
+  let n=0;
+  while(d<=end){ if(isTradingDay(d,m)) n++; d.setUTCDate(d.getUTCDate()+1); }
+  return n;
 }
 function yearTotalFor(m, year, useHolidays){
   const start=new Date(Date.UTC(year,0,1));
@@ -407,12 +366,12 @@ function hueAt(t){ const h=220 + (10-220)*t, s=96 + (85-96)*t, l=52 + (40-52)*t;
 let showRemaining = true;
 
 function render(){
-  const includeToday = document.getElementById('incToday').checked;
+  const includeToday = document.getElementById('incToday')?.checked ?? false;
   const now=new Date();
   const {q,start,end}=quarterBounds(now);
   const total=countTradingDaysInclusive(start,end,CURRENT);
-  const gone=tradingDaysGoneInQuarter(now,start,CURRENT, includeToday);
-  const remaining=Math.max(0,total-gone);
+  const remaining = tradingDaysRemaining(now, end, CURRENT, includeToday);
+  const gone = Math.max(0, total - remaining);
   const pctRem = Math.round(100*remaining/total);
   const pctSpent = 100-pctRem;
 
@@ -421,29 +380,15 @@ function render(){
   document.getElementById('qDaysLeft').textContent = `${remaining}`;
   document.getElementById('qCaption').textContent = 'Trading Days Remaining';
 
-  // base
-  const base=document.getElementById('qbarBase'); base.innerHTML='';
+  // Build bar with crisp segments
+  const line=document.getElementById('qbarLine'); line.innerHTML='';
   for(let i=0;i<total;i++){
     const seg=document.createElement('div');
     seg.className='seg';
     seg.style.background=hueAt((i+1)/total);
-    base.appendChild(seg);
+    if(i<gone) seg.classList.add('on','fill');
+    line.appendChild(seg);
   }
-  // fill
-  const fill=document.getElementById('qbarFill'); fill.innerHTML='';
-  for(let i=0;i<gone;i++){
-    const seg=document.createElement('div');
-    seg.className='seg on';
-    seg.style.background=hueAt((i+1)/total);
-    fill.appendChild(seg);
-  }
-  const mask = document.getElementById('qbarFillMask');
-  mask.style.width = '0';
-  requestAnimationFrame(()=>{
-    const pct = (gone/total)*100;
-    mask.style.transition = 'width 700ms ease';
-    mask.style.width = pct + '%';
-  });
 
   // Toggle text
   const pctEl = document.getElementById('pctText');
@@ -452,7 +397,7 @@ function render(){
   // Meta
   document.getElementById('qSub').textContent = `Day ${Math.min(gone,total)} of ${total}`;
 
-  // Year list (current + next 4)
+  // Year list (current + next 4) in one row
   const yCont = document.getElementById('yearList'); yCont.innerHTML='';
   const currentYear = now.getFullYear();
   const years = [currentYear, currentYear+1, currentYear+2, currentYear+3, currentYear+4];
@@ -468,10 +413,10 @@ function render(){
 function tick(){
   // world clocks
   const fmt = (tz)=> new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:false, timeZone: tz});
-  document.getElementById('tLDN').textContent = fmt('Europe/London');
-  document.getElementById('tNYC').textContent = fmt('America/New_York');
-  document.getElementById('tTYO').textContent = fmt('Asia/Tokyo');
-  document.getElementById('tSHA').textContent = fmt('Asia/Shanghai');
+  const ldn=document.getElementById('tLDN'); if(ldn) ldn.textContent = fmt('Europe/London');
+  const nyc=document.getElementById('tNYC'); if(nyc) nyc.textContent = fmt('America/New_York');
+  const tyo=document.getElementById('tTYO'); if(tyo) tyo.textContent = fmt('Asia/Tokyo');
+  const sha=document.getElementById('tSHA'); if(sha) sha.textContent = fmt('Asia/Shanghai');
 }
 
 /* Market selector gating */
@@ -480,7 +425,7 @@ document.getElementById('marketSel').addEventListener('change', (e)=>{
   if(v==='NYSE'){ CURRENT = MARKETS.NYSE; render(); return; }
   if(v==='LSE'){
     if(isPro()){ CURRENT = MARKETS.LSE; render(); }
-    else { openUnlock(); e.target.value='NYSE'; }
+    else { document.getElementById('unlockModal').style.display='flex'; e.target.value='NYSE'; }
   }
 });
 
@@ -519,26 +464,16 @@ themeBtn.addEventListener('click', ()=>{
   themeBtn.setAttribute('aria-pressed', light ? 'true' : 'false');
 });
 
-/* Email modal */
-function openEmail(){ document.getElementById('emailModal').style.display='flex'; }
-function closeEmail(){ document.getElementById('emailModal').style.display='none'; }
-document.getElementById('updatesBtn').addEventListener('click', (e)=>{ e.preventDefault(); openEmail(); });
-function submitEmail(e){
-  e.preventDefault();
-  const email = document.getElementById('emailInput').value.trim();
-  const msg = document.getElementById('emailMsg');
-  if(!email){ msg.textContent='Please enter an email.'; return; }
-  // Simple fallback: opens mail client; replace later with your email provider form action
-  window.location.href = `mailto:founder@tradingdaysthisquarter.com?subject=Pro%20Updates&body=Please%20add%20${encodeURIComponent(email)}%20to%20the%20Pro%20waitlist.`;
-  msg.textContent='Thanks! Your mail app should open — we’ll add you.';
-}
-
 /* init */
 renderProState();
 render(); tick(); setInterval(tick,1000);
 
-/* links placeholders */
+/* simple mailto placeholders */
 document.getElementById('preorderBtn').href = "mailto:founder@tradingdaysthisquarter.com?subject=Join%20Pro%20Waitlist&body=Hi%2C%20please%20add%20me%20to%20the%20Pro%20waitlist.%20Name%3A%20%0AMarkets%20of%20interest%3A%20";
+document.getElementById('updatesBtn').addEventListener('click', (e)=>{
+  e.preventDefault();
+  window.location.href = "mailto:founder@tradingdaysthisquarter.com?subject=Pro%20Updates&body=Please%20add%20me%20to%20the%20Pro%20updates%20list.";
+});
 </script>
 </body>
 </html>
