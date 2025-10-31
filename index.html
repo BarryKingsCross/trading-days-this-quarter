@@ -3,14 +3,17 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Quarter Counter (QTA) – Prototype v5</title>
+<title>Trading Days This Quarter – Quarter Counter</title>
+<link rel="canonical" href="https://tradingdaysthisquarter.com/" />
+<meta name="description" content="See exactly how many trading days remain in the current quarter, with a clean, accurate bar and world clocks. Free. Pro adds multi-markets and snapshots." />
+<meta property="og:title" content="Trading Days This Quarter" />
+<meta property="og:description" content="Live trading-day countdown by exchange. Discipline starts with time awareness." />
+<meta property="og:url" content="https://tradingdaysthisquarter.com/" />
+<meta property="og:type" content="website" />
 <style>
-  /* THEME VARS */
   :root{
     --bg:#0b0c0f; --card:#121419; --muted:#2a2f3a; --text:#e9eef7; --sub:#9ba7bd; --ok:#5dd39e;
-    --metaSize:34px;         /* ~5% smaller than previous 36px/39px */
-    --titleSize:32px;        /* +15% from 28px */
-    --taglineSize:15px;      /* ~12% larger than 13px */
+    --metaSize:34px; --titleSize:34px;
   }
   body.light{
     --bg:#fafbfd; --card:#ffffff; --muted:#e7ecf5; --text:#0b0c0f; --sub:#536079; --ok:#1f8f55;
@@ -20,42 +23,39 @@
   body{margin:0;font:16px/1.45 Inter,system-ui,Segoe UI,Arial;background:var(--bg);color:var(--text)}
   .wrap{max-width:1100px;margin:40px auto;padding:0 20px}
   .topbar{display:flex;justify-content:flex-end}
-  .themeBtn{border:1px solid #1a1f2b;background:transparent;color:var(--text);padding:6px 10px;border-radius:10px;cursor:pointer}
-  body.light .themeBtn{border-color:#cfd6e6}
+  .themeBtn,.btn{border:1px solid #1a1f2b;background:transparent;color:var(--text);padding:6px 12px;border-radius:10px;cursor:pointer;text-decoration:none}
+  body.light .themeBtn, body.light .btn{border-color:#cfd6e6;color:#0b0c0f}
+  .actions{display:flex;gap:10px; align-items:center}
 
   /* Header */
-  .center{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:22px;text-align:center}
-  .brandRow{display:flex;align-items:center;gap:8px} /* logo closer to text */
-  .logo{width:42px;height:42px}
+  .center{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:18px;text-align:center}
+  .brandRow{display:flex;align-items:center;gap:6px}
+  .logo{width:46px;height:46px}
   .title{font-weight:900;letter-spacing:.2px;font-size:var(--titleSize)}
-  .subtitle{color:var(--sub);font-size:var(--taglineSize);font-style:italic} /* italic + larger */
 
   .card{background:linear-gradient(180deg,var(--card),rgba(0,0,0,0.02));border:1px solid #1a1f2b;border-radius:14px;padding:22px}
   body.light .card{border-color:#d7deee}
 
-  .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;background:rgba(12,17,24,.6);border:1px solid #1b2130;color:#b8c3d8;font-size:12px}
-  body.light .pill{background:#f2f6ff;color:#4e5a74;border-color:#cfd6e6}
-
   /* Quarter area */
-  .qHeader{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px}
-  .qMain{display:flex;flex-direction:column;align-items:center;gap:14px;margin:8px 0 6px}
-  .qLabel{font-size:42px;font-weight:900;line-height:1;margin-bottom:14px;} /* extra space under Q4 2025 */
-  .qDaysLeft{font-size:62px;font-weight:900;letter-spacing:.5px;line-height:1}
-  .qCaption{font-size:var(--metaSize);color:#cbd6ec;opacity:.95;line-height:1.15;margin-top:2px}
+  .qHeader{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:8px}
+  .qMain{display:flex;flex-direction:column;align-items:center;gap:12px;margin:8px 0 6px}
+  .qLabel{font-size:44px;font-weight:900;line-height:1;margin-bottom:10px}
+  .qDaysLeft{font-size:66px;font-weight:900;letter-spacing:.5px;line-height:1}
+  .qCaption{font-size:var(--metaSize);color:#cbd6ec;opacity:.95;line-height:1.15;margin-top:0}
   body.light .qCaption{color:#4b5568;opacity:1}
 
-  /* Progress bar (taller) */
-  .qbarWrap{width:100%;margin-top:18px}
-  .qbar{position:relative;width:100%;height:58px;padding:6px;border-radius:14px;background:#0c0f15;border:1px solid #1b2130;overflow:hidden}
-  body.light .qbar{background:#eef2fb;border-color:#d4dbed}
+  /* Progress bar */
+  .qbarWrap{width:100%;margin-top:12px}
+  .qbar{position:relative;width:100%;height:62px;padding:6px;border-radius:14px;background:#0c0f15;border:1px solid #1b2130;overflow:hidden}
+  body.light .qbar{background:#eaf0fb;border-color:#d4dbed}
   .bar{display:flex;gap:4px;height:100%}
-  .seg{height:100%;flex:1;border-radius:8px;opacity:.28;transition:opacity .35s ease, transform .4s ease;transform-origin:left}
+  .seg{height:100%;flex:1;border-radius:8px;opacity:.55;transition:opacity .25s ease, transform .4s ease;transform-origin:left}
   .seg.on{opacity:1}
   @keyframes fill { from { transform:scaleX(0) } to { transform:scaleX(1) } }
   .seg.play{ animation: fill .5s forwards }
 
-  /* Toggle switch (large, clean, centered text) */
-  .toggleWrap{display:flex;justify-content:center;margin-top:16px}
+  /* Toggle */
+  .toggleWrap{display:flex;justify-content:center;margin-top:12px}
   .toggle{position:relative;display:flex;align-items:center;justify-content:space-between;background:#0c1118;border:1px solid #1b2130;border-radius:999px;padding:6px;width:520px;max-width:100%}
   body.light .toggle{background:#eaf0fb;border-color:#cfd6e6}
   .toggle .knob{position:absolute;z-index:1;top:4px;bottom:4px;width:50%;border-radius:999px;background:#1a2434;transition:transform .25s ease}
@@ -65,63 +65,79 @@
   .toggle button{position:relative;z-index:2;border:none;background:transparent;color:#c6d2ea;font-weight:800;font-size:var(--metaSize);padding:6px 18px;border-radius:999px;cursor:pointer;flex:1;text-align:center}
   body.light .toggle button{color:#33415f}
 
-  /* Below-bar meta line */
   .metaLarge{font-size:var(--metaSize);font-weight:800;color:#cbd6ec;opacity:.95;letter-spacing:.2px}
   body.light .metaLarge{color:#3e4a61;opacity:1}
 
-  /* Secondary layout */
+  /* Grid */
   .grid{display:grid;gap:16px}
-  .grid-2{grid-template-columns:1.3fr .7fr}
+  .grid-2{grid-template-columns:1fr}
   .grid-3{grid-template-columns:repeat(3,1fr)}
-  .row{display:flex;justify-content:space-between;align-items:end;gap:12px}
-  .timer{font-weight:800;font-size:48px;letter-spacing:.5px}
-  .ta{width:100%;height:120px;background:#0c0f15;border:1px solid #1b2130;border-radius:10px;color:var(--text);padding:10px;resize:vertical}
-  body.light .ta{background:#f6f8fe;border-color:#d4dbed;color:#0b0c0f}
-  .qbar .hint{position:absolute;inset:auto 10px 8px auto;font-size:12px;color:#9fb0ce;opacity:.8}
-  body.light .qbar .hint{color:#5a6a87}
+  @media(min-width:920px){ .grid-2{grid-template-columns:1.15fr .85fr} }
 
-  /* Simple header buttons */
-  .actions{display:flex;gap:10px; align-items:center}
-  .btn{border:1px solid #1a1f2b; background:transparent; color:var(--text); padding:6px 12px; border-radius:10px; cursor:pointer; text-decoration:none}
-  body.light .btn{border-color:#cfd6e6; color:#0b0c0f}
+  /* Year list */
+  .yearList{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:10px}
+  .yearCard{padding:14px;border:1px solid #1b2130;border-radius:12px;background:#0c0f15}
+  body.light .yearCard{background:#f6f8fe;border-color:#d4dbed}
+  .yearHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .yTitle{font-weight:800}
+  .yNum{font-weight:900;font-size:22px}
+
+  /* World clocks */
+  .clocks{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+  .clock{padding:14px;border:1px solid #1b2130;border-radius:12px;background:#0c0f15;text-align:center}
+  body.light .clock{background:#f6f8fe;border-color:#d4dbed}
+  .cCity{font-weight:700;margin-bottom:4px}
+  .cTime{font-size:22px;font-weight:900}
+
+  /* Footer note */
+  .note{color:var(--sub);font-size:12px;margin-top:6px}
 </style>
 </head>
 <body>
   <div class="wrap">
     <div class="topbar">
       <div class="actions">
-        <a class="btn" id="updatesBtn" href="YOUR_EMAIL_FORM_URL" target="_blank" rel="noopener">Get Updates</a>
-        <a class="btn" id="preorderBtn" href="YOUR_PAYMENT_LINK" target="_blank" rel="noopener">Pre-order Pro</a>
+        <a class="btn" id="updatesBtn" href="#" target="_blank" rel="noopener">Get Updates</a>
+        <a class="btn" id="preorderBtn" href="#" target="_blank" rel="noopener">Join Pro Waitlist</a>
         <button id="themeBtn" class="themeBtn" aria-pressed="false">☀️ Light</button>
       </div>
     </div>
 
-    <!-- centered header with logo + title -->
+    <!-- Header with refreshed logo (juiced up) -->
     <div class="center">
       <div class="brandRow">
         <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
           <defs>
-            <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="0" stdDeviation="0.6" flood-opacity="0.25"/>
+            <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#79b6ff"/><stop offset="100%" stop-color="#3b82f6"/>
+            </linearGradient>
+            <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#9f8bff"/><stop offset="100%" stop-color="#6d5df5"/>
+            </linearGradient>
+            <linearGradient id="g3" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ff7284"/><stop offset="100%" stop-color="#ef4444"/>
+            </linearGradient>
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="0" stdDeviation="1.4" flood-color="#3b82f6" flood-opacity=".35"/>
             </filter>
           </defs>
-          <circle cx="32" cy="32" r="30" fill="transparent" stroke="currentColor" stroke-width="2" opacity=".25"/>
-          <g transform="skewX(-12)" filter="url(#soft)">
-            <rect x="16" y="34" width="8" height="14" rx="2" fill="#6aa8ff"/>
-            <rect x="27" y="27" width="8" height="21" rx="2" fill="#8a7dff"/>
-            <rect x="38" y="18" width="8" height="30" rx="2" fill="#ff5a6e"/>
+          <circle cx="32" cy="32" r="30" fill="transparent" stroke="currentColor" stroke-width="1.5" opacity=".22"/>
+          <g transform="skewX(-12) translate(-2,0)" filter="url(#glow)">
+            <rect x="16" y="34" width="9" height="15" rx="2.5" fill="url(#g1)"/>
+            <rect x="28" y="26" width="9" height="23" rx="2.5" fill="url(#g2)"/>
+            <rect x="40" y="16" width="9" height="33" rx="2.5" fill="url(#g3)"/>
           </g>
         </svg>
         <div class="title">Quarter Counter</div>
       </div>
-      <div class="subtitle"><em>“Where am I in the quarter?” — at a glance.</em></div>
+      <!-- Tagline removed per user request -->
     </div>
 
     <!-- Quarter block -->
     <div class="card">
       <div class="qHeader">
-        <div class="pill"><span style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></span> Discipline mode</div>
-        <div class="subtitle" id="marketLabel">—</div>
+        <div></div> <!-- discipline pill removed -->
+        <div class="subtitle" id="marketLabel">LSE • Europe/London</div>
       </div>
 
       <div class="qMain">
@@ -129,7 +145,7 @@
 
         <!-- BIG number + caption -->
         <div id="qDaysLeft" class="qDaysLeft">—</div>
-        <div id="qCaption" class="qCaption">Days Remaining</div>
+        <div id="qCaption" class="qCaption">Trading Days Remaining</div>
 
         <!-- Progress bar -->
         <div class="qbarWrap">
@@ -138,7 +154,6 @@
             <div id="qbarFillMask" style="position:absolute;left:6px;top:6px;bottom:6px;width:0;overflow:hidden;border-radius:10px;">
               <div id="qbarFill" class="bar"></div>
             </div>
-            <div class="hint">Blue → Deep red as quarter advances</div>
           </div>
         </div>
 
@@ -151,31 +166,34 @@
           </div>
         </div>
 
-        <div class="metaLarge" style="margin-top:12px">
+        <div class="metaLarge" style="margin-top:8px">
           <span id="qSub">Day — of —</span> • <span id="pctText">—%</span>
         </div>
       </div>
     </div>
 
-    <div class="grid grid-2" style="margin-top:18px">
-      <!-- Year tracker -->
+    <!-- Year totals + World clocks -->
+    <div class="grid grid-2" style="margin-top:16px">
       <div class="card">
-        <div class="row"><strong>Year 2025</strong><div class="subtitle" id="yearLeft">— trading days left</div></div>
-        <div class="qbar" style="height:16px">
-          <div id="yearFill" class="seg on" style="flex:0;background:#5b6b88;opacity:1;border-radius:8px"></div>
-          <div style="flex:1"></div>
-        </div>
+        <strong>Yearly Trading Days (est.)</strong>
+        <div class="yearList" id="yearList"></div>
+        <div class="note">Counts Monday–Friday. Current year adjusts for listed LSE holidays; future years exclude unknown holidays.</div>
       </div>
 
-      <!-- Countdown -->
-      <div class="card" style="text-align:center">
-        <div class="subtitle">Next market open</div>
-        <div id="timer" class="timer">--:--:--</div>
+      <div class="card">
+        <strong>World Clocks</strong>
+        <div class="clocks">
+          <div class="clock"><div class="cCity">London</div><div class="cTime" id="tLDN">--:--</div></div>
+          <div class="clock"><div class="cCity">New York</div><div class="cTime" id="tNYC">--:--</div></div>
+          <div class="clock"><div class="cCity">Tokyo</div><div class="cTime" id="tTYO">--:--</div></div>
+          <div class="clock"><div class="cCity">Shanghai</div><div class="cTime" id="tSHA">--:--</div></div>
+        </div>
+        <div class="note">Region packs and custom clocks in Pro.</div>
       </div>
     </div>
 
     <!-- Notes -->
-    <div class="grid grid-3" style="margin-top:18px">
+    <div class="grid grid-3" style="margin-top:16px">
       <div class="card">
         <strong>Hard Targets</strong>
         <textarea id="hard" class="ta" placeholder="e.g. Achieve 4 A+ setups this quarter"></textarea>
@@ -189,24 +207,10 @@
         <textarea id="setups" class="ta" placeholder="e.g. When TSLA tests VWAP on rising volume → wait 15m retest"></textarea>
       </div>
     </div>
-
-    <!-- Simple FAQ for SEO (you can edit) -->
-    <div class="card" style="margin-top:18px">
-      <h2 style="margin:0 0 8px 0">FAQ</h2>
-      <details><summary>How many trading days are left this quarter?</summary>
-        <p>The big number above shows the count for your selected market, excluding weekends and exchange holidays.</p>
-      </details>
-      <details><summary>What time does the LSE/NYSE open?</summary>
-        <p>LSE opens at 08:00 London; NYSE at 09:30 New York (DST-aware). We'll add more markets soon.</p>
-      </details>
-      <details><summary>Can I get a daily snapshot before the open?</summary>
-        <p>In the Pro version you'll be able to receive a pre-open snapshot via desktop notifications and email.</p>
-      </details>
-    </div>
   </div>
 
 <script>
-/* ===== Market config ===== */
+/* ===== Market config (LSE default) ===== */
 const MARKET = {
   code:'LSE',
   tz:'Europe/London',
@@ -221,11 +225,12 @@ const MARKET = {
 /* ===== Helpers ===== */
 const pad=n=>String(n).padStart(2,'0');
 const toLocal=(d,tz)=> new Date(d.toLocaleString('en-GB',{timeZone:tz}));
-function isHoliday(d){ const y=d.getFullYear(), m=pad(d.getMonth()+1), day=pad(d.getDate()); return MARKET.holidays.includes(`${y}-${m}-${day}`); }
+function isHolidayISOStr(iso){ return MARKET.holidays.includes(iso); }
 function isTradingDay(d){
   const loc=toLocal(d, MARKET.tz);
   const w=loc.getDay();
-  return !(w===0 || w===6 || isHoliday(loc));
+  const iso = `${loc.getFullYear()}-${pad(loc.getMonth()+1)}-${pad(loc.getDate())}`;
+  return !(w===0 || w===6 || isHolidayISOStr(iso));
 }
 function quarterBounds(d){
   const y=d.getFullYear(), m=d.getMonth();
@@ -253,7 +258,23 @@ function yearTradingTotals(today){
   const total=countTradingDaysInclusive(start,end);
   let gone=0, d=new Date(start);
   while(d<=today){ if(isTradingDay(d)) gone++; d.setUTCDate(d.getUTCDate()+1); }
-  return {total,gone,left:Math.max(0,total-gone)};
+  return {year:y,total,gone,left:Math.max(0,total-gone)};
+}
+function yearTotalEst(year){
+  // Mon–Fri only; if current year, subtract known holidays
+  const start=new Date(Date.UTC(year,0,1));
+  const end=new Date(Date.UTC(year,11,31));
+  let n=0, d=new Date(start);
+  while(d<=end){
+    const w=d.getUTCDay();
+    if(w>=1 && w<=5){
+      // adjust for known holidays in that year only
+      const iso = `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
+      if(!(year===new Date().getFullYear() && isHolidayISOStr(iso))) n++;
+    }
+    d.setUTCDate(d.getUTCDate()+1);
+  }
+  return n;
 }
 function nextOpenUTC(now=new Date()){
   let d=new Date(now);
@@ -267,7 +288,7 @@ function nextOpenUTC(now=new Date()){
   }
   return new Date(now.getTime()+86400000);
 }
-function hueAt(t){ const h=220 + (10-220)*t, s=90 + (85-90)*t, l=55 + (45-55)*t; return `hsl(${h}deg ${s}% ${l}%)`; }
+function hueAt(t){ const h=220 + (10-220)*t, s=92 + (85-92)*t, l=52 + (44-52)*t; return `hsl(${h}deg ${s}% ${l}%)`; }
 
 /* ===== Rendering ===== */
 let showRemaining = true;
@@ -282,12 +303,10 @@ function render(){
   const pctSpent = 100-pctRem;
 
   document.getElementById('qLabel').textContent = `Q${q} ${now.getFullYear()}`;
-
-  // Big number + caption
   document.getElementById('qDaysLeft').textContent = `${remaining}`;
-  document.getElementById('qCaption').textContent = 'Days Remaining';
+  document.getElementById('qCaption').textContent = 'Trading Days Remaining';
 
-  // Build base layer (all segments faint)
+  // base
   const base=document.getElementById('qbarBase'); base.innerHTML='';
   for(let i=0;i<total;i++){
     const seg=document.createElement('div');
@@ -295,22 +314,20 @@ function render(){
     seg.style.background=hueAt((i+1)/total);
     base.appendChild(seg);
   }
-  // Build fill layer (segments up to "gone")
+  // fill
   const fill=document.getElementById('qbarFill'); fill.innerHTML='';
   for(let i=0;i<gone;i++){
     const seg=document.createElement('div');
     seg.className='seg on play';
     seg.style.background=hueAt((i+1)/total);
-    seg.style.animationDelay = (i*0.008)+'s';
+    seg.style.animationDelay = (i*0.007)+'s';
     fill.appendChild(seg);
   }
-
-  // Animate mask width from 0 -> percent filled
   const mask = document.getElementById('qbarFillMask');
   mask.style.width = '0';
   requestAnimationFrame(()=>{
     const pct = (gone/total)*100;
-    mask.style.transition = 'width 800ms ease';
+    mask.style.transition = 'width 750ms ease';
     mask.style.width = pct + '%';
   });
 
@@ -322,21 +339,26 @@ function render(){
   document.getElementById('marketLabel').textContent = `${MARKET.code} • ${MARKET.tz}`;
   document.getElementById('qSub').textContent = `Day ${Math.min(gone+1,total)} of ${total}`;
 
-  // Year bar
-  const y=yearTradingTotals(now);
-  document.getElementById('yearLeft').textContent = `${y.left} trading days left`;
-  const yearFill=document.getElementById('yearFill');
-  yearFill.style.flex = (y.gone/y.total)*100 + '%';
+  // Year list
+  const yCont = document.getElementById('yearList'); yCont.innerHTML='';
+  const currentYear = now.getFullYear();
+  const years = [currentYear, currentYear+1, currentYear+2, currentYear+3, currentYear+4];
+  years.forEach(y=>{
+    const total = yearTotalEst(y);
+    const card = document.createElement('div');
+    card.className='yearCard';
+    card.innerHTML = `<div class="yearHead"><div class="yTitle">Year ${y}</div><div class="yNum">${total}</div></div><div class="subtitle">Total trading days (est.)</div>`;
+    yCont.appendChild(card);
+  });
 }
 
 function tick(){
-  const t=nextOpenUTC();
-  const now=new Date();
-  let ms=Math.max(0, t-now);
-  const h=Math.floor(ms/36e5); ms%=36e5;
-  const m=Math.floor(ms/6e4);  ms%=6e4;
-  const s=Math.floor(ms/1000);
-  document.getElementById('timer').textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  // world clocks
+  const fmt = (tz)=> new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:false, timeZone: tz});
+  document.getElementById('tLDN').textContent = fmt('Europe/London');
+  document.getElementById('tNYC').textContent = fmt('America/New_York');
+  document.getElementById('tTYO').textContent = fmt('Asia/Tokyo');
+  document.getElementById('tSHA').textContent = fmt('Asia/Shanghai');
 }
 
 /* Toggle behavior */
@@ -381,9 +403,9 @@ themeBtn.addEventListener('click', ()=>{
 /* init */
 render(); tick(); setInterval(tick,1000);
 
-/* ----- Replace these with your real links later ----- */
-document.getElementById('updatesBtn').href = "#"; // e.g. Mailchimp/ConvertKit form
-document.getElementById('preorderBtn').href = "#"; // e.g. Stripe Payment Link
+/* links placeholders */
+document.getElementById('updatesBtn').href = "#";
+document.getElementById('preorderBtn').href = "mailto:founder@tradingdaysthisquarter.com?subject=Join%20Pro%20Waitlist&body=Hi%2C%20please%20add%20me%20to%20the%20Pro%20waitlist.%20Name%3A%20%0AMarkets%20of%20interest%3A%20";
 </script>
 </body>
 </html>
